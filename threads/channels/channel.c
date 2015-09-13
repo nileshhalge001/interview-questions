@@ -1,3 +1,8 @@
+/* TODO
+ * - Add comments to explain error handling with realloc
+ * - Rewrite top-level code to use only stack allocated variables and integers
+ *   (rather than char buffers)
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
