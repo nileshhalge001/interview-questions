@@ -2,7 +2,7 @@
 
 Coding Interview practice with questions from different sources:
 
-* [Careercup](www.careercup.com)
+* [Careercup](http://www.careercup.com)
 * Pramp
 * InterviewBit
 * Glassdoor
@@ -12,7 +12,7 @@ Coding Interview practice with questions from different sources:
 * Programming Interviews Exposed (3rd Edition)
 * geeksforgeeks
 * HackerRank
-* Quora
+* [Quora](http://www.quora.com)
 
 The knowledge based section (and content) includes some exercises adapted from:
 
