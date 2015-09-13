@@ -12,7 +12,7 @@ struct channel {
 	sem_t data_writer;
 	sem_t data_reader;
 	struct {
-		char *data;
+		char data[512];
 		size_t len;
 	} data;
 };
@@ -32,7 +32,6 @@ channel_t *make_channel(void) {
 	if (sem_init(&ch->data_reader, 0, 0) == -1)
 		goto freedw;
 
-	ch->data.data = NULL;
 	ch->data.len = 0;
 
 	return ch;
@@ -60,10 +59,10 @@ int channel_write(channel_t *ch, char *data, size_t len) {
 	sem_wait(&ch->writer_to_reader);
 
 	sem_wait(&ch->data_writer);
-	printf("writing %d (data = %p)\n", *(int *) data, (void *) data);
-	ch->data.data = data;
+	//printf("writing %d (data = %p)\n", *(int *) data, (void *) data);
+	memcpy(ch->data.data, data, len);
 	ch->data.len = len;
-	printf("finished writing, ch->data.data = %p\n", (void *) ch->data.data);
+	//printf("finished writing, ch->data.data = %p\n", (void *) ch->data.data);
 	sem_post(&ch->data_reader);
 
 	return 0;
@@ -75,12 +74,12 @@ int channel_read(channel_t *ch, char *data, size_t len) {
 	sem_wait(&ch->reader_to_writer);
 
 	sem_wait(&ch->data_reader);
-	printf("reading %d from %p\n", *(int *) ch->data.data, (void *) ch->data.data);
+	//printf("reading %d from %p\n", *(int *) ch->data.data, (void *) ch->data.data);
 	size_t copy_len = len;
 	if (ch->data.len < copy_len)
 		copy_len = ch->data.len;
 	memcpy(data, ch->data.data, copy_len);
-	printf("finished reading %d\n", *(int *) ch->data.data);
+	//printf("finished reading %d\n", *(int *) ch->data.data);
 	sem_post(&ch->data_writer);
 
 	return 0;
@@ -95,7 +94,8 @@ static pthread_t threads[THREADS_N];
 
 void *thr_fn(void *id) {
 	int i;
-	int *buf = malloc(sizeof(*buf));
+	//int *buf = malloc(sizeof(*buf));
+	char *buf = malloc(32);
 
 	//printf("allocated memory; buf = %p\n", (void *) buf);
 
@@ -105,10 +105,10 @@ void *thr_fn(void *id) {
 	}
 
 	for (i = (uintptr_t) id; i < COUNT; i += THREADS_N) {
-		*buf = i;
-		if (channel_write(chan, (char *) buf, sizeof(*buf)) == -1) {
+		int n = sprintf(buf, "%d", i);
+		if (channel_write(chan, buf, n+1) == -1) {
 			perror("channel_write() failed");
-			free(buf);
+			//free(buf);
 			return NULL;
 		}
 	}
@@ -133,15 +133,14 @@ int main(void) {
 		}
 	}
 
-	printf("Counting from 0 to %d (random order)\n", COUNT);
-
 	for (i = 0; i < COUNT; i++) {
-		int j;
-		if (channel_read(chan, (char *) &j, sizeof(j)) == -1) {
+		//int j;
+		char j[32];
+		if (channel_read(chan, j, sizeof(j)) == -1) {
 			perror("channel_read() error");
 			exit(EXIT_FAILURE);
 		}
-		printf("%d\n", j);
+		printf("%s\n", j);
 	}
 
 	return 0;
