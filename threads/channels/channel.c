@@ -59,6 +59,11 @@ void destroy_channel(channel_t *ch) {
 
 int channel_write(channel_t *ch, char *data, size_t len) {
 
+	if (len == 0) {
+		errno = EINVAL;
+		return -1;
+	}
+
 	if (sem_post(&ch->reader_to_writer) == -1)
 		return -1;
 	sem_wait(&ch->writer_to_reader);
@@ -84,6 +89,12 @@ int channel_write(channel_t *ch, char *data, size_t len) {
 }
 
 int channel_read(channel_t *ch, char *data, size_t len) {
+
+	if (len == 0) {
+		errno = EINVAL;
+		return -1;
+	}
+
 	if (sem_post(&ch->writer_to_reader) == -1)
 		return -1;
 	sem_wait(&ch->reader_to_writer);
