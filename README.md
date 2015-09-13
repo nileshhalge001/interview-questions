@@ -2,8 +2,9 @@
 
 Coding Interview practice with questions from different sources:
 
+<<<<<<< HEAD
 * [Careercup](http://www.careercup.com)
-* Pramp
+* [Pramp](www.pramp.com)
 * InterviewBit
 * Glassdoor
 * StackOverflow
