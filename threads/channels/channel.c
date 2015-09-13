@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <pthread.h>
 #include <semaphore.h>
+#include <errno.h>
 
 struct channel {
 	sem_t reader_to_writer;
@@ -12,8 +13,9 @@ struct channel {
 	sem_t data_writer;
 	sem_t data_reader;
 	struct {
-		char data[512];
+		char *data;
 		size_t len;
+		size_t cap;
 	} data;
 };
 
@@ -32,7 +34,9 @@ channel_t *make_channel(void) {
 	if (sem_init(&ch->data_reader, 0, 0) == -1)
 		goto freedw;
 
+	ch->data.data = NULL;
 	ch->data.len = 0;
+	ch->data.cap = 0;
 
 	return ch;
 
@@ -54,12 +58,26 @@ void destroy_channel(channel_t *ch) {
 }
 
 int channel_write(channel_t *ch, char *data, size_t len) {
+
 	if (sem_post(&ch->reader_to_writer) == -1)
 		return -1;
 	sem_wait(&ch->writer_to_reader);
 
 	sem_wait(&ch->data_writer);
 	//printf("writing %d (data = %p)\n", *(int *) data, (void *) data);
+
+	if (ch->data.cap < len) {
+		char *new_buf = realloc(ch->data.data, len*2);
+		if (new_buf == NULL) {
+			ch->data.len = 0;
+			sem_post(&ch->data_reader);
+			errno = ENOMEM;
+			return -1;
+		}
+		ch->data.data = new_buf;
+		ch->data.cap = len*2;
+	}
+
 	memcpy(ch->data.data, data, len);
 	ch->data.len = len;
 	//printf("finished writing, ch->data.data = %p\n", (void *) ch->data.data);
@@ -78,6 +96,13 @@ int channel_read(channel_t *ch, char *data, size_t len) {
 	size_t copy_len = len;
 	if (ch->data.len < copy_len)
 		copy_len = ch->data.len;
+
+	if (copy_len == 0) {
+		sem_post(&ch->data_writer);
+		errno = ENOMEM;
+		return -1;
+	}
+
 	memcpy(data, ch->data.data, copy_len);
 	//printf("finished reading %d\n", *(int *) ch->data.data);
 	sem_post(&ch->data_writer);
