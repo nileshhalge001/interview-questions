@@ -64,8 +64,6 @@ int channel_write(channel_t *ch, char *data, size_t len) {
 	sem_wait(&ch->writer_to_reader);
 
 	sem_wait(&ch->data_writer);
-	//printf("writing %d (data = %p)\n", *(int *) data, (void *) data);
-
 	if (ch->data.cap < len) {
 		char *new_buf = realloc(ch->data.data, len*2);
 		if (new_buf == NULL) {
@@ -80,7 +78,6 @@ int channel_write(channel_t *ch, char *data, size_t len) {
 
 	memcpy(ch->data.data, data, len);
 	ch->data.len = len;
-	//printf("finished writing, ch->data.data = %p\n", (void *) ch->data.data);
 	sem_post(&ch->data_reader);
 
 	return 0;
@@ -92,7 +89,6 @@ int channel_read(channel_t *ch, char *data, size_t len) {
 	sem_wait(&ch->reader_to_writer);
 
 	sem_wait(&ch->data_reader);
-	//printf("reading %d from %p\n", *(int *) ch->data.data, (void *) ch->data.data);
 	size_t copy_len = len;
 	if (ch->data.len < copy_len)
 		copy_len = ch->data.len;
@@ -104,7 +100,6 @@ int channel_read(channel_t *ch, char *data, size_t len) {
 	}
 
 	memcpy(data, ch->data.data, copy_len);
-	//printf("finished reading %d\n", *(int *) ch->data.data);
 	sem_post(&ch->data_writer);
 
 	return 0;
@@ -121,8 +116,6 @@ void *thr_fn(void *id) {
 	int i;
 	//int *buf = malloc(sizeof(*buf));
 	char *buf = malloc(32);
-
-	//printf("allocated memory; buf = %p\n", (void *) buf);
 
 	if (buf == NULL) {
 		fprintf(stderr, "malloc(3) returned NULL\n");
