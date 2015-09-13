@@ -1,6 +1,3 @@
-/* TODO
- * - Add comments to explain error handling with realloc
- */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -74,6 +71,12 @@ int channel_write(channel_t *ch, char *data, size_t len) {
 	sem_wait(&ch->data_writer);
 	if (ch->data.cap < len) {
 		char *new_buf = realloc(ch->data.data, len*2);
+		/* We handle allocation errors by setting the length to 0 and returning an error
+		 * back to the caller.
+		 *
+		 * As zero-length reads and writes are disallowed, a length of 0 in channel_read()
+		 * means that the corresponding channel_write() had an allocation error.
+		 */
 		if (new_buf == NULL) {
 			ch->data.len = 0;
 			sem_post(&ch->data_reader);
@@ -108,6 +111,9 @@ int channel_read(channel_t *ch, char *data, size_t len) {
 		copy_len = ch->data.len;
 
 	if (copy_len == 0) {
+		/* If we get here, realloc(3) failed on channel_write(), there's not much we can do
+		 * at this point.
+		 */
 		sem_post(&ch->data_writer);
 		errno = ENOMEM;
 		return -1;
