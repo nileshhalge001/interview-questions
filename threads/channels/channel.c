@@ -12,6 +12,12 @@ struct channel {
 	sem_t writer_to_reader;
 	sem_t data_writer;
 	sem_t data_reader;
+
+	/* A quick and simple simulation of Go slices in C to pass data around.
+	 * The `data` pointer is the actual buffer; `len` is the number of bytes written
+	 * in the buffer (that will be fetched by channel_read()), and `cap` is the buffer's
+	 * capacity. The buffer is realloced if a write exceeds the size of the buffer.
+	 */
 	struct {
 		char *data;
 		size_t len;
