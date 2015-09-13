@@ -1,7 +1,5 @@
 /* TODO
  * - Add comments to explain error handling with realloc
- * - Rewrite top-level code to use only stack allocated variables and integers
- *   (rather than char buffers)
  */
 
 #include <stdio.h>
@@ -130,24 +128,14 @@ static pthread_t threads[THREADS_N];
 
 void *thr_fn(void *id) {
 	int i;
-	//int *buf = malloc(sizeof(*buf));
-	char *buf = malloc(32);
-
-	if (buf == NULL) {
-		fprintf(stderr, "malloc(3) returned NULL\n");
-		return NULL;
-	}
 
 	for (i = (uintptr_t) id; i < COUNT; i += THREADS_N) {
-		int n = sprintf(buf, "%d", i);
-		if (channel_write(chan, buf, n+1) == -1) {
+		if (channel_write(chan, (char *) &i, sizeof(i)) == -1) {
 			perror("channel_write() failed");
-			//free(buf);
 			return NULL;
 		}
 	}
 
-	//free(buf);
 	return NULL;
 }
 
@@ -168,13 +156,12 @@ int main(void) {
 	}
 
 	for (i = 0; i < COUNT; i++) {
-		//int j;
-		char j[32];
-		if (channel_read(chan, j, sizeof(j)) == -1) {
+		int j;
+		if (channel_read(chan, (char *) &j, sizeof(j)) == -1) {
 			perror("channel_read() error");
 			exit(EXIT_FAILURE);
 		}
-		printf("%s\n", j);
+		printf("%d\n", j);
 	}
 
 	return 0;
