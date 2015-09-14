@@ -1,9 +1,10 @@
 # Interview Questions
 
-Coding Interview practice with questions from various sources:
+Coding Interview practice with questions from different sources:
 
-* Careercup
-* Pramp
+<<<<<<< HEAD
+* [Careercup](http://www.careercup.com)
+* [Pramp](www.pramp.com)
 * InterviewBit
 * Glassdoor
 * StackOverflow
@@ -12,6 +13,7 @@ Coding Interview practice with questions from various sources:
 * Programming Interviews Exposed (3rd Edition)
 * geeksforgeeks
 * HackerRank
+* [Quora](http://www.quora.com)
 
 The knowledge based section (and content) includes some exercises adapted from:
 
@@ -20,3 +22,4 @@ The knowledge based section (and content) includes some exercises adapted from:
 * The C Programming Language (2nd edition)
 * Computer Networking: A Top-Down Approach (6th Edition)
 * TCP/IP Illustrated, Volume 1 (2nd Edition)
+* The awk programming language
